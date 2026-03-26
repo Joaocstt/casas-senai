@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import type { Aluno, Status } from '../types/arcanum';
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+const API_URL = import.meta.env.VITE_API_URL || '';
 
 export const useAlunos = (casaId?: string, status?: Status | 'TODOS') => {
     return useQuery<Aluno[]>({

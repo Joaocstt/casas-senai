@@ -6,7 +6,7 @@ import { useAlunos } from '../../hooks/useAlunos';
 import { useCasas } from '../../hooks/useCasas';
 import type { Aluno, Status } from '../../types/arcanum';
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+const API_URL = import.meta.env.VITE_API_URL || '';
 
 type FilterStatus = Status | 'TODOS';
 

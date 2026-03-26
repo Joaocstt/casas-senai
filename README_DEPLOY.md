@@ -21,7 +21,7 @@ docker compose up -d --build
 ```
 
 ### 2. Verificar o Status
-Aguarde alguns instantes para o banco de dados iniciar e o backend rodar as migrações. Verifique os logs:
+Aguarde alguns instantes para o banco de dados iniciar. O backend irá **rodar as migrações automaticamente** (`npx prisma migrate deploy`) no primeiro startup. Verifique os logs para confirmar:
 ```bash
 docker compose logs -f backend
 ```
@@ -40,5 +40,5 @@ O frontend será carregado e fará chamadas automáticas para o backend através
 
 ## Notas de Configuração
 - **Frontend**: O `useCasas` e `useSocket` foram ajustados para usar caminhos relativos. Isso permite que a aplicação funcione em qualquer IP sem reconfigurar o código.
-- **Backend**: As migrações do Prisma (`prisma migrate deploy`) rodam automaticamente no startup do container do backend.
+- **Backend**: As migrações do Prisma rodam automaticamente no startup do container (`command` no `docker-compose.yml`). **IMPORTANTE**: A pasta `backend/prisma/migrations/` que criei agora deve estar presente no seu servidor para que isso funcione.
 - **Banco de Dados**: Os dados são persistidos no volume `postgres_data`.

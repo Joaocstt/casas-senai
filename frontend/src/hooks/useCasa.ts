@@ -1,8 +1,8 @@
 import { useQuery } from '@tanstack/react-query';
-import { CasaConfig } from '../types/arcanum';
+import type { CasaConfig } from '../types/arcanum';
 import { CASAS_CONFIG, resolveCasaImage } from '../config/casas';
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+const API_URL = import.meta.env.VITE_API_URL || '';
 
 export const fetchCasa = async (slug: string): Promise<CasaConfig> => {
     const response = await fetch(`${API_URL}/api/casas/${slug}`);

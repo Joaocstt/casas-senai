@@ -6,7 +6,7 @@ import { useAlunos } from '../../hooks/useAlunos';
 import { useAuth } from '../../hooks/useAuth';
 import { useCasas } from '../../hooks/useCasas';
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+const API_URL = import.meta.env.VITE_API_URL || '';
 
 const categories = [
     'Mérito Acadêmico',
@@ -401,9 +401,8 @@ const PontuacaoForm: React.FC = () => {
                                         {filteredStudents.map((student) => (
                                             <div
                                                 key={student.id}
-                                                className={`grid gap-3 px-5 py-4 md:grid-cols-[minmax(0,1.5fr),1fr,110px,160px] md:items-center ${
-                                                    selectedStudent === student.id ? 'bg-[#c9a84c]/10' : ''
-                                                }`}
+                                                className={`grid gap-3 px-5 py-4 md:grid-cols-[minmax(0,1.5fr),1fr,110px,160px] md:items-center ${selectedStudent === student.id ? 'bg-[#c9a84c]/10' : ''
+                                                    }`}
                                             >
                                                 <div>
                                                     <div className="font-semibold text-white">{student.nome}</div>
@@ -516,11 +515,10 @@ const SidebarTab: React.FC<SidebarTabProps> = ({ active, icon, title, descriptio
     <button
         type="button"
         onClick={onClick}
-        className={`flex w-full items-start gap-3 rounded-xl border px-4 py-3 text-left transition ${
-            active
+        className={`flex w-full items-start gap-3 rounded-xl border px-4 py-3 text-left transition ${active
                 ? 'border-[#c9a84c]/30 bg-[#c9a84c]/10 text-white'
                 : 'border-transparent bg-black/20 text-[#d6c9a5]/75 hover:border-[#c9a84c]/15 hover:bg-[#c9a84c]/5'
-        }`}
+            }`}
     >
         <div className="mt-0.5 text-[#c9a84c]">{icon}</div>
         <div>
