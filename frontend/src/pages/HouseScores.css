@@ -1,0 +1,435 @@
+.house-scores-container {
+    position: relative;
+    width: 100vw;
+    height: 100vh;
+    background: #050510;
+    color: #fff;
+    overflow: hidden;
+    font-family: 'Outfit', sans-serif;
+}
+
+.scores-canvas {
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+}
+
+.background-video {
+    position: fixed;
+    inset: 0;
+    width: 100vw;
+    height: 100vh;
+    object-fit: cover;
+    z-index: 1;
+    opacity: 0.12;
+    /* Subtle as requested */
+    filter: grayscale(1) contrast(1.2);
+    /* De-emphasize colors to not clash with UI */
+}
+
+/* HOLOGRAPHIC OVERLAYS */
+.hologram-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 5;
+    pointer-events: none;
+    background:
+        radial-gradient(circle at 50% 50%, transparent 40%, rgba(0, 0, 0, 0.4) 100%),
+        repeating-linear-gradient(0deg, rgba(200, 164, 77, 0.03) 0, rgba(200, 164, 77, 0.03) 1px, transparent 1px, transparent 2px);
+    background-size: 100% 100%, 100% 2px;
+}
+
+.scanline-sweep {
+    position: fixed;
+    top: -100%;
+    left: 0;
+    width: 100%;
+    height: 200px;
+    background: linear-gradient(to bottom, transparent, rgba(200, 164, 77, 0.12), transparent);
+    animation: sweep 12s linear infinite;
+    z-index: 5;
+    pointer-events: none;
+}
+
+@keyframes sweep {
+    from {
+        top: -20%;
+    }
+
+    to {
+        top: 120%;
+    }
+}
+
+.ranking-ui.slideshow-mode {
+    position: relative;
+    z-index: 10;
+    width: 100%;
+    height: 100vh;
+    max-width: 1600px;
+    margin: 0 auto;
+    padding: 1rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: space-between;
+    box-sizing: border-box;
+}
+
+.ranking-header {
+    flex-shrink: 0;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding-top: 1rem;
+    text-align: center;
+}
+
+.btn-back-v4 {
+    position: absolute;
+    top: 1.5rem;
+    left: 1.5rem;
+    background: rgba(0, 0, 0, 0.6);
+    border: 1px solid rgba(200, 164, 77, 0.3);
+    color: #C8A44D;
+    padding: 0.6rem 1.2rem;
+    font-family: 'Cinzel', serif;
+    font-size: 0.75rem;
+    letter-spacing: 0.2em;
+    cursor: pointer;
+    backdrop-filter: blur(15px);
+    z-index: 100;
+}
+
+.btn-back-v4:hover {
+    background: #C8A44D;
+    color: #000;
+    box-shadow: 0 0 40px rgba(200, 164, 77, 0.4);
+}
+
+.section-label {
+    font-size: 0.7rem;
+    letter-spacing: 0.4em;
+    color: #C8A44D;
+    text-transform: uppercase;
+    display: block;
+    margin-bottom: 0.2rem;
+}
+
+.ranking-title {
+    font-family: 'Cinzel Decorative', serif;
+    font-size: clamp(1.5rem, 4vw, 3.5rem);
+    margin: 0;
+    color: #fff;
+}
+
+/* SLIDESHOW STAGE */
+.slideshow-stage {
+    position: relative;
+    width: 100%;
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    perspective: 2000px;
+    z-index: 20;
+}
+
+/* CARD V5 - PREMIUM SLIDESHOW CARD */
+.ranking-card-v5 {
+    position: relative;
+    width: 95%;
+    max-width: 480px;
+    height: 90%;
+    max-height: 580px;
+    /* Reduced for better fit on all cards */
+    background: linear-gradient(135deg, rgba(15, 15, 30, 0.95) 0%, rgba(5, 5, 15, 0.98) 100%);
+    backdrop-filter: blur(50px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 4px;
+    overflow: hidden;
+    box-shadow: 0 30px 100px rgba(0, 0, 0, 0.9);
+    display: flex;
+    flex-direction: column;
+}
+
+/* HERO WINNER HIGHLIGHT */
+.ranking-card-v5.hero-winner {
+    max-width: 580px;
+    max-height: 720px;
+    border: 2px solid var(--house-color);
+    box-shadow: 0 0 60px var(--house-color), 0 50px 150px rgba(0, 0, 0, 1);
+}
+
+.card-rank-badge-v5 {
+    position: absolute;
+    top: 1rem;
+    right: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    z-index: 50;
+    pointer-events: none;
+}
+
+.rank-num {
+    font-family: 'Cinzel Decorative', serif;
+    font-size: clamp(3rem, 10vw, 5rem);
+    /* Scaled down for non-hero */
+    line-height: 0.8;
+    color: var(--house-color);
+    text-shadow: 0 0 40px var(--house-color);
+    opacity: 0.2;
+}
+
+.hero-winner .rank-num {
+    font-size: clamp(5rem, 15vw, 8.5rem);
+    /* Massive for hero only */
+    color: var(--house-color);
+    text-shadow: 0 0 60px var(--house-color), 0 0 30px rgba(200, 164, 77, 0.4);
+    opacity: 0.25;
+}
+
+.leader-badge-wrapper {
+    position: relative;
+    padding: 0.35rem 1rem;
+    background: #C8A44D;
+    margin-bottom: 0.5rem;
+    transform: skewX(-15deg);
+}
+
+.leader-label {
+    font-family: 'Cinzel', serif;
+    font-size: 0.7rem;
+    color: #000;
+    font-weight: 900;
+    letter-spacing: 0.2em;
+    display: block;
+    transform: skewX(15deg);
+}
+
+.card-inner-v5 {
+    position: relative;
+    padding: 2.5rem;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    z-index: 40;
+}
+
+.card-top-v5 {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+    margin-bottom: 1.5rem;
+    padding-right: 4rem;
+    /* Buffer for absolute rank numeral */
+}
+
+.house-crest-v5 {
+    width: clamp(70px, 12vw, 100px);
+    height: clamp(70px, 12vw, 100px);
+    flex-shrink: 0;
+}
+
+.hero-winner .house-crest-v5 {
+    width: clamp(100px, 18vw, 150px);
+    height: clamp(100px, 18vw, 150px);
+}
+
+.house-crest-v5 img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+}
+
+.house-info-v5 {
+    display: flex;
+    flex-direction: column;
+    max-width: 65%;
+}
+
+.house-trait-v5 {
+    font-size: 0.7rem;
+    letter-spacing: 0.4em;
+    color: var(--house-color);
+    text-transform: uppercase;
+    margin-bottom: 0.3rem;
+}
+
+.house-name-v5 {
+    font-family: 'Cinzel', serif;
+    font-size: clamp(1.8rem, 4vw, 3rem);
+    color: #fff;
+    line-height: 1;
+    margin: 0;
+}
+
+.card-stats-v5 {
+    margin-bottom: 1rem;
+}
+
+.stat-row-v5 {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: 0.5rem;
+}
+
+.stat-val-v5 {
+    font-family: 'Cinzel', serif;
+    font-size: clamp(2.2rem, 7vw, 3.8rem);
+    color: #fff;
+    line-height: 1;
+}
+
+.hero-winner .stat-val-v5 {
+    color: #C8A44D;
+}
+
+.progress-container-v5 {
+    width: 100%;
+    height: 6px;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 3px;
+}
+
+.progress-fill-v5 {
+    height: 100%;
+    background: var(--house-color);
+}
+
+.card-desc-v5 {
+    font-size: clamp(0.85rem, 1.3vw, 1rem);
+    line-height: 1.5;
+    color: rgba(255, 255, 255, 0.6);
+    margin-bottom: 0.5rem;
+    overflow-y: auto;
+}
+
+.card-footer-v5 {
+    margin-top: auto;
+    text-align: center;
+    padding-top: 1rem;
+    flex-shrink: 0;
+}
+
+/* NAVIGATION */
+.slideshow-nav {
+    flex-shrink: 0;
+    display: flex;
+    gap: 1.2rem;
+    padding-bottom: 1.5rem;
+    z-index: 100;
+}
+
+.nav-dot-v5 {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.3rem;
+    cursor: pointer;
+    transition: all 0.3s;
+    opacity: 0.4;
+}
+
+.nav-dot-v5.active {
+    opacity: 1;
+    transform: translateY(-5px);
+}
+
+.nav-thumb {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    background: rgba(0, 0, 0, 0.6);
+    padding: 5px;
+}
+
+.nav-dot-v5.active .nav-thumb {
+    border-color: var(--house-color);
+    box-shadow: 0 0 20px var(--house-color);
+}
+
+/* LOADING STATE */
+.loading-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1.5rem;
+    color: #C8A44D;
+}
+
+.loading-ring {
+    width: 50px;
+    height: 50px;
+    border: 2px solid rgba(200, 164, 77, 0.1);
+    border-top: 2px solid #C8A44D;
+    border-radius: 50%;
+    animation: ring-spin 1s linear infinite;
+}
+
+@keyframes ring-spin {
+    from {
+        transform: rotate(0deg);
+    }
+
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* RESPONSIVE BREAKPOINTS */
+@media (max-width: 768px) {
+    .btn-back-v4 {
+        top: 1rem;
+        left: 1rem;
+        padding: 0.5rem 1rem;
+        font-size: 0.6rem;
+    }
+
+    .ranking-card-v5 {
+        width: 90%;
+        max-height: 500px;
+    }
+
+    .card-top-v5 {
+        gap: 1rem;
+        margin-bottom: 1rem;
+    }
+
+    .house-crest-v5 {
+        width: 60px;
+        height: 60px;
+    }
+
+    .stat-val-v5 {
+        font-size: 2rem;
+    }
+}
+
+@media (max-height: 800px) {
+    .ranking-header {
+        padding-top: 0.2rem;
+        margin-bottom: 0.5rem;
+    }
+
+    .ranking-title {
+        font-size: 1.5rem;
+    }
+
+    .card-inner-v5 {
+        padding: 1.5rem;
+    }
+
+    .card-top-v5 {
+        margin-bottom: 0.8rem;
+    }
+
+    .card-stats-v5 {
+        margin-bottom: 0.8rem;
+    }
+}

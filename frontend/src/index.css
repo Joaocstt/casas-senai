@@ -1,0 +1,192 @@
+@import url('https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@700&family=Cinzel:wght@400;500;600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --sans: 'Cinzel', serif;
+  --heading: 'Cinzel Decorative', serif;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  background-color: #000;
+  color: #fff;
+  font-family: var(--sans);
+  overflow-x: hidden;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+#root {
+  min-height: 100vh;
+}
+
+.slideshow-shell {
+  position: relative;
+  min-height: 100vh;
+  overflow: hidden;
+  background:
+    radial-gradient(circle at top, rgba(201, 168, 76, 0.12), transparent 42%),
+    linear-gradient(180deg, rgba(0, 0, 0, 0.94), rgba(8, 3, 4, 1));
+}
+
+.slideshow-panel {
+  position: relative;
+  min-height: 100vh;
+}
+
+.placar-slide-enter {
+  opacity: 0;
+  transform: scale(1.035) translateY(24px);
+  filter: blur(18px) saturate(0.78) brightness(0.7);
+}
+
+.placar-slide-enter-active {
+  opacity: 1;
+  transform: scale(1) translateY(0);
+  filter: blur(0) saturate(1) brightness(1);
+  transition:
+    opacity 1100ms ease,
+    transform 1100ms cubic-bezier(0.22, 1, 0.36, 1),
+    filter 1100ms ease;
+}
+
+.placar-slide-exit {
+  opacity: 1;
+  transform: scale(1) translateY(0);
+  filter: blur(0) saturate(1) brightness(1);
+}
+
+.placar-slide-exit-active {
+  opacity: 0;
+  transform: scale(0.975) translateY(-18px);
+  filter: blur(20px) saturate(1.18) brightness(1.08);
+  transition:
+    opacity 900ms ease,
+    transform 900ms cubic-bezier(0.64, 0, 0.78, 0),
+    filter 900ms ease;
+}
+
+@media (prefers-reduced-motion: reduce) {
+
+  .placar-slide-enter,
+  .placar-slide-enter-active,
+  .placar-slide-exit,
+  .placar-slide-exit-active {
+    opacity: 1;
+    transform: none;
+    filter: none;
+    transition: none;
+  }
+}
+
+@keyframes roman-shimmer {
+  0% {
+    background-position: -200% center;
+  }
+
+  100% {
+    background-position: 200% center;
+  }
+}
+
+@keyframes dragon-fire {
+
+  0%,
+  100% {
+    filter: drop-shadow(0 0 8px var(--rank-color, #00ff00)) brightness(1.1);
+    text-shadow: 0 0 10px var(--rank-color, rgba(0, 255, 0, 0.8)), 0 -2px 10px var(--rank-color, rgba(173, 255, 47, 0.5));
+  }
+
+  50% {
+    filter: drop-shadow(0 0 15px var(--rank-color, #7fff00)) brightness(1.3);
+    text-shadow: 0 0 20px var(--rank-color, rgba(0, 255, 0, 1)), 0 -5px 20px var(--rank-color, rgba(0, 100, 0, 0.8));
+  }
+}
+
+/* Simple rank label */
+.bar-rank {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: flex-start !important;
+  font-family: 'Cinzel Decorative', serif !important;
+  font-weight: 900 !important;
+  line-height: 1 !important;
+  letter-spacing: 0.06em;
+  color: var(--rank-color, var(--house-color, #3D3630)) !important;
+  min-width: 1.5em;
+  padding: 0;
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+  text-shadow: none;
+  margin-right: 0.35em;
+  flex-shrink: 0;
+  transition: color 0.2s ease;
+}
+
+.bar-name-num {
+  display: inline-block !important;
+  font-family: 'Cinzel Decorative', serif !important;
+  font-weight: 900 !important;
+  color: var(--rank-color, var(--house-color, #3D3630)) !important;
+  margin-left: 0.5em;
+  font-size: 1.1em !important;
+}
+
+/* Premium Name Styling */
+.bar-name {
+  color: var(--house-color, #3D3630);
+  font-weight: 700 !important;
+  text-shadow:
+    0.5px 0.5px 0px rgba(255, 255, 255, 0.4),
+    -0.5px -0.5px 0px rgba(0, 0, 0, 0.6);
+  letter-spacing: 0.04em;
+  transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  filter: contrast(1.1) brightness(0.9);
+}
+
+.bar-row:hover .bar-name {
+  filter: contrast(1.2) brightness(1.1);
+  letter-spacing: 0.08em;
+  text-shadow:
+    0px 0px 8px rgba(255, 255, 255, 0.3),
+    0.5px 0.5px 0px rgba(255, 255, 255, 0.5);
+}
+
+/* Modern Highlight for Names */
+.bar-name-container {
+  position: relative;
+  text-shadow: 0 0 10px rgba(255, 255, 255, 0.2);
+}
+
+.bar-name-container::after {
+  content: '';
+  position: absolute;
+  bottom: -4px;
+  left: 50%;
+  width: 0%;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--house-color), transparent);
+  transform: translateX(-50%);
+  animation: underline-grow 2.5s ease-out forwards;
+  opacity: 0.6;
+}
+
+@keyframes underline-grow {
+  from {
+    width: 0%;
+    opacity: 0;
+  }
+
+  to {
+    width: 70%;
+    opacity: 0.6;
+  }
+}
