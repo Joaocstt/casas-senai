@@ -13,7 +13,7 @@ interface BarRowProps {
     scoreFontSize: string;
     houseColor: string;
     houseSlug?: string;
-    fontConfig?: { rankScale?: number; rankLeft?: string; rankColor?: string };
+    fontConfig?: { rankScale?: number; rankLeft?: string; scoreRight?: string; rankColor?: string };
 }
 
 const BarRow: React.FC<BarRowProps> = ({
@@ -32,6 +32,7 @@ const BarRow: React.FC<BarRowProps> = ({
 
     const finalRankScale = fontConfig?.rankScale ?? 2.2;
     const finalRankLeft = fontConfig?.rankLeft ?? '4%';
+    const finalScoreRight = fontConfig?.scoreRight ?? '6%';
 
     return (
         <div
@@ -78,7 +79,7 @@ const BarRow: React.FC<BarRowProps> = ({
                     color={houseColor}
                 />
             </div>
-            <div style={{ position: 'absolute', right: '6%' }}>
+            <div style={{ position: 'absolute', right: finalScoreRight }}>
                 <ScoreNumber value={points} fontSize={scoreFontSize} />
             </div>
         </div>

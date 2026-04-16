@@ -22,6 +22,7 @@ export interface CasaConfig {
         score: number;
         rankScale?: number; // scale multiplier for the rank numeral
         rankLeft?: string;   // horizontal position (e.g. "4%")
+        scoreRight?: string; // right offset for the score label
         rankColor?: string;  // custom color for the rank numeral
     };
     layout: {
@@ -47,6 +48,11 @@ export interface CasaSummary {
     slug: string;
     nome: string;
     cor: string;
+    image: string;      // mascot
+    brasao?: string;    // crest
+    fraze?: string;     // trait
+    descricao?: string; // desc
+    config?: any;       // JSON config
     points: number;
 }
 
@@ -56,7 +62,37 @@ export interface Aluno {
     casa: string;
     casaId: string;
     status: Status;
+    faltas: number;
     points: number;
+    totalInfracoes: number;
+    infracoes: InfracaoAluno[];
+    penalizacao: PenalizacaoAluno;
+}
+
+export interface InfracaoAluno {
+    id: string;
+    item?: string | null;
+    gravidade?: 'LEVE' | 'MEDIA' | 'GRAVE' | null;
+    descricao?: string | null;
+    tipo?: string | null;
+    data: string;
+    criadoPor?: string | null;
+    criadoEm: string;
+}
+
+export interface PenalizacaoAluno {
+    totalInfracoes: number;
+    totalFaltas: number;
+    nivelInfracoes: 'SEM_PENALIDADE' | 'LEVE' | 'MEDIA' | 'GRAVE';
+    totaisPorGravidade: {
+        leve: number;
+        media: number;
+        grave: number;
+    };
+    penalidadeOcorrencias: number;
+    penalidadeInfracoes: number;
+    penalidadeFaltas: number;
+    penalidadeTotal: number;
 }
 
 export interface HistoricoLancamento {

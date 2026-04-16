@@ -5,7 +5,7 @@ export const LEAO_LAYOUT = {
     imageHeight: 748,
     bars: [
         { top: 37.5, left: 33.5, right: 33.5, height: 5 }, // Barra I
-        { top: 50.3, left: 33.5, right: 33.5, height: 5 }, // Barra II
+        { top: 48.4, left: 33.5, right: 33.5, height: 5 }, // Barra II
         { top: 60.4, left: 33.5, right: 33.5, height: 5 }, // Barra III
         { top: 70.1, left: 33.5, right: 33.5, height: 5 }, // Barra IV
         { top: 80.0, left: 33.5, right: 33.5, height: 5 }, // Barra V
@@ -28,7 +28,7 @@ export const CORVO_LAYOUT = {
     imageWidth: 1424,
     imageHeight: 748,
     bars: [
-        { top: 40.7, left: 18, right: 18, height: 5 }, // Barra I
+        { top: 37.7, left: 31, right: 18, height: 5 }, // Barra I
         { top: 50.3, left: 18, right: 18, height: 5 }, // Barra II
         { top: 60.4, left: 18, right: 18, height: 5 }, // Barra III
         { top: 70.1, left: 18, right: 18, height: 5 }, // Barra IV
@@ -40,7 +40,7 @@ export const LOBO_LAYOUT = {
     imageWidth: 1424,
     imageHeight: 748,
     bars: [
-        { top: 39.11, left: 45, right: 38.9, height: 5 }, // Barra I
+        { top: 39.11, left: 38, right: 38.9, height: 5 }, // Barra I
         { top: 48.7, left: 45, right: 38.9, height: 5 }, // Barra II
         { top: 58.85, left: 45, right: 38.9, height: 5 }, // Barra III
         { top: 68.5, left: 45, right: 38.9, height: 5 }, // Barra IV
@@ -52,33 +52,33 @@ export const CASAS_CONFIG: Record<string, Omit<CasaConfig, 'id' | 'members'>> = 
     leao: {
         slug: 'leao',
         nome: 'Casa de Leão',
-        cor: '#d24242ff   ',
+        cor: '#000000ff   ',
         image: '/images/leao.png',
-        fonts: { name: 18, score: 22, rankScale: 2.2, rankLeft: '14%', rankColor: '#bc1818ff' },
+        fonts: { name: 18, score: 28, rankScale: 2.2, rankLeft: '14%', rankColor: '#000000ff' },
         layout: LEAO_LAYOUT,
     },
     corvo: {
         slug: 'corvo',
         nome: 'Casa de Corvo',
-        cor: '#1A237E',
+        cor: '#000000ff',
         image: '/images/corvo.png',
-        fonts: { name: 18, score: 22, rankScale: 2.2, rankLeft: '4%', rankColor: '#C0C0C0' },
+        fonts: { name: 18, score: 28, rankScale: 2.2, rankLeft: '14%', scoreRight: '16%', rankColor: '#000000ff' },
         layout: CORVO_LAYOUT,
     },
     lobo: {
         slug: 'lobo',
         nome: 'Casa de Lobo',
-        cor: '#3D3630',
+        cor: '#000000ff',
         image: '/images/lobo.png',
-        fonts: { name: 16, score: 18, rankScale: 2.2, rankLeft: '4%', rankColor: '#D3D3D3' },
+        fonts: { name: 16, score: 28, rankScale: 2.2, rankLeft: '14%', rankColor: '#000000ff' },
         layout: LOBO_LAYOUT,
     },
     dragao: {
         slug: 'dragao',
         nome: 'Casa de Dragão',
-        cor: '#065118ff',
+        cor: '#000000ff',
         image: '/images/dragao.png',
-        fonts: { name: 20, score: 30, rankScale: 2.2, rankLeft: '15%', rankColor: 'rgb(4, 68, 19)' },
+        fonts: { name: 20, score: 28, rankScale: 2.2, rankLeft: '14%', rankColor: '#000000ff' },
         layout: DRAGAO_LAYOUT,
     },
 };

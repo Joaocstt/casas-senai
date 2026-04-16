@@ -14,12 +14,16 @@ datasource db {
 }
 
 model Casa {
-  id     String  @id @default(cuid())
-  slug   String  @unique // "leao", "corvo", "lobo", "dragao"
-  nome   String
-  cor    String
-  image  String
-  alunos Aluno[]
+  id        String  @id @default(cuid())
+  slug      String  @unique // "leao", "corvo", "lobo", "dragao"
+  nome      String
+  cor       String
+  image     String  // mascot
+  brasao    String? // crest
+  fraze     String? // trait
+  descricao String? // desc
+  config    Json?   // Configurações extras (ex: tamanhos de fonte)
+  alunos    Aluno[]
 }
 
 model Aluno {
@@ -28,7 +32,9 @@ model Aluno {
   casaId    String
   casa      Casa       @relation(fields: [casaId], references: [id])
   status    Status     @default(ATIVO)
+  faltas    Int        @default(0)
   registros Registro[]
+  infracoes Infracao[]
 }
 
 model Registro {
@@ -40,6 +46,19 @@ model Registro {
   data       DateTime @default(now())
   observacao String?
   criadoPor  String
+  criadoEm   DateTime @default(now())
+}
+
+model Infracao {
+  id         String   @id @default(cuid())
+  alunoId    String
+  aluno      Aluno    @relation(fields: [alunoId], references: [id])
+  item       String?
+  gravidade  String?
+  descricao  String?
+  tipo       String?
+  data       DateTime @default(now())
+  criadoPor  String?
   criadoEm   DateTime @default(now())
 }
 

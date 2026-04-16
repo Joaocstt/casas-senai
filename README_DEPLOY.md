@@ -4,7 +4,7 @@ Este guia descreve como rodar a aplicação Arcanum em um servidor VPS usando ap
 
 ## Pré-requisitos
 1. **Docker** e **Docker Compose** instalados na VPS.
-2. Portas **80** (HTTP) e **5432** (Postgres) abertas no firewall da VPS.
+2. Portas **80** (HTTP, se for usar `FRONTEND_PORT=80`) e **5433** (Postgres, se precisar acesso externo) abertas no firewall da VPS.
 
 ## Estrutura de Arquivos
 Certifique-se de que os seguintes arquivos estão no servidor:
@@ -17,7 +17,7 @@ Certifique-se de que os seguintes arquivos estão no servidor:
 ### 1. Iniciar os Containers
 Na raiz do projeto, execute:
 ```bash
-docker compose up -d --build
+FRONTEND_PORT=80 docker compose up -d --build --remove-orphans
 ```
 
 ### 2. Verificar o Status
@@ -40,5 +40,6 @@ O frontend será carregado e fará chamadas automáticas para o backend através
 
 ## Notas de Configuração
 - **Frontend**: O `useCasas` e `useSocket` foram ajustados para usar caminhos relativos. Isso permite que a aplicação funcione em qualquer IP sem reconfigurar o código.
+- **Portas publicadas**: Por padrão, o projeto sobe com `FRONTEND_PORT=5173`, `BACKEND_PORT=3001` e `DB_PORT=5433`. Em produção, você pode sobrescrever essas variáveis, por exemplo com `FRONTEND_PORT=80`.
 - **Backend**: As migrações do Prisma rodam automaticamente no startup do container (`command` no `docker-compose.yml`). **IMPORTANTE**: A pasta `backend/prisma/migrations/` que criei agora deve estar presente no seu servidor para que isso funcione.
 - **Banco de Dados**: Os dados são persistidos no volume `postgres_data`.

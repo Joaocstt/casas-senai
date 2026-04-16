@@ -2,6 +2,14 @@ import { Router } from 'express';
 import prisma from '../lib/prisma.js';
 import { io } from '../server.js';
 import { emitScoreUpdate } from '../socket/handlers.js';
+import {
+    calcularPontuacaoManual,
+    calcularPontuacaoUc,
+    formatarResumoPontuacaoManual,
+    formatarResumoPontuacaoUc,
+} from '../lib/pontuacaoUc.js';
+import { calcularPontosAluno } from '../lib/penalizacao.js';
+import { mapAluno } from '../lib/aluno.js';
 
 const router = Router();
 
@@ -52,19 +60,19 @@ router.get('/historico-global', async (req, res) => {
                 tipo === 'positivo'
                     ? { gt: 0 }
                     : tipo === 'negativo'
-                      ? { lt: 0 }
-                      : undefined,
+                        ? { lt: 0 }
+                        : undefined,
             criadoEm:
                 startDate || endDate
                     ? {
-                          gte: startDate ? new Date(String(startDate)) : undefined,
-                          lte: endDate ? new Date(String(endDate)) : undefined,
-                      }
+                        gte: startDate ? new Date(String(startDate)) : undefined,
+                        lte: endDate ? new Date(String(endDate)) : undefined,
+                    }
                     : undefined,
             aluno: casaId
                 ? {
-                      casaId: String(casaId),
-                  }
+                    casaId: String(casaId),
+                }
                 : undefined,
         };
 
@@ -97,7 +105,7 @@ router.get('/historico-global', async (req, res) => {
         }));
 
         const resumo = lancamentos.reduce(
-                (acc: { totalRegistros: number; saldoTotal: number; totalPositivo: number; totalNegativo: number }, registro: HistoricoLancamento) => {
+            (acc: { totalRegistros: number; saldoTotal: number; totalPositivo: number; totalNegativo: number }, registro: HistoricoLancamento) => {
                 acc.totalRegistros += 1;
                 acc.saldoTotal += registro.valor;
                 if (registro.valor > 0) acc.totalPositivo += registro.valor;
@@ -183,6 +191,138 @@ router.get('/historico-global', async (req, res) => {
     }
 });
 
+router.post('/calcular-uc', async (req, res) => {
+    try {
+        const resultado = calcularPontuacaoUc(req.body);
+        res.json(resultado);
+    } catch (error) {
+        res.status(400).json({ error: 'Erro ao calcular pontuação da UC' });
+    }
+});
+
+router.post('/calcular-manual', async (req, res) => {
+    try {
+        const resultado = calcularPontuacaoManual(req.body);
+        res.json(resultado);
+    } catch (error) {
+        res.status(400).json({ error: 'Erro ao calcular pontuação manual' });
+    }
+});
+
+router.post('/lancar-manual', async (req, res) => {
+    const { alunoId, criadoPor, observacao, ...input } = req.body;
+
+    if (!alunoId) {
+        return res.status(400).json({ error: 'Aluno é obrigatório' });
+    }
+
+    try {
+        const calculo = calcularPontuacaoManual(input);
+        const registro = await prisma.registro.create({
+            data: {
+                alunoId,
+                categoria: calculo.label,
+                valor: calculo.pontos,
+                observacao: formatarResumoPontuacaoManual(calculo, observacao),
+                criadoPor: criadoPor || 'Admin',
+            },
+            include: {
+                aluno: {
+                    include: {
+                        casa: true,
+                        registros: true,
+                    }
+                }
+            }
+        });
+
+        const casaSlug = registro.aluno.casa.slug;
+        const casa = await prisma.casa.findUnique({
+            where: { slug: casaSlug },
+            include: {
+                alunos: {
+                    where: { status: 'ATIVO' },
+                    include: { registros: true, infracoes: true }
+                }
+            }
+        });
+
+        if (casa) {
+            const allMembers = casa.alunos.map((a: any) => ({
+                id: a.id,
+                points: calcularPontosAluno(a)
+            })).sort((a: any, b: any) => b.points - a.points);
+
+            const index = allMembers.findIndex((m: any) => m.id === alunoId);
+            const points = allMembers[index]?.points || 0;
+            emitScoreUpdate(io, casa.slug, index, points);
+        }
+
+        res.json({
+            registro,
+            calculo,
+            aluno: mapAluno(registro.aluno)
+        });
+    } catch (error) {
+        res.status(500).json({ error: 'Erro ao lançar pontuação manual' });
+    }
+});
+
+router.post('/lancar-uc', async (req, res) => {
+    const { alunoId, criadoPor, observacao, ...input } = req.body;
+
+    if (!alunoId) {
+        return res.status(400).json({ error: 'Aluno é obrigatório' });
+    }
+
+    try {
+        const calculo = calcularPontuacaoUc(input);
+        const registro = await prisma.registro.create({
+            data: {
+                alunoId,
+                categoria: 'Pontuação UC',
+                valor: calculo.total,
+                observacao: formatarResumoPontuacaoUc(calculo, observacao),
+                criadoPor: criadoPor || 'Admin',
+            },
+            include: {
+                aluno: {
+                    include: {
+                        casa: true,
+                        registros: true,
+                    }
+                }
+            }
+        });
+
+        const casaSlug = registro.aluno.casa.slug;
+        const casa = await prisma.casa.findUnique({
+            where: { slug: casaSlug },
+            include: {
+                alunos: {
+                    where: { status: 'ATIVO' },
+                    include: { registros: true, infracoes: true }
+                }
+            }
+        });
+
+        if (casa) {
+            const allMembers = casa.alunos.map((a: any) => ({
+                id: a.id,
+                points: calcularPontosAluno(a)
+            })).sort((a: any, b: any) => b.points - a.points);
+
+            const index = allMembers.findIndex((m: any) => m.id === alunoId);
+            const points = allMembers[index]?.points || 0;
+            emitScoreUpdate(io, casa.slug, index, points);
+        }
+
+        res.json({ registro, calculo });
+    } catch (error) {
+        res.status(500).json({ error: 'Erro ao lançar pontuação da UC' });
+    }
+});
+
 router.post('/', async (req, res) => {
     const { alunoId, categoria, valor, observacao, criadoPor } = req.body;
 
@@ -206,7 +346,7 @@ router.post('/', async (req, res) => {
             include: {
                 alunos: {
                     where: { status: 'ATIVO' },
-                    include: { registros: true }
+                    include: { registros: true, infracoes: true }
                 }
             }
         });
@@ -214,7 +354,7 @@ router.post('/', async (req, res) => {
         if (casa) {
             const allMembers = casa.alunos.map((a: any) => ({
                 id: a.id,
-                points: a.registros.reduce((acc: number, r: any) => acc + r.valor, 0)
+                points: calcularPontosAluno(a)
             })).sort((a: any, b: any) => b.points - a.points);
 
             const index = allMembers.findIndex((m: any) => m.id === alunoId);

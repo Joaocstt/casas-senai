@@ -13,14 +13,8 @@ interface HouseData {
     crest: string;
     mascot: string;
     desc: string;
+    config?: any;
 }
-
-const HOUSES_META: Record<string, Partial<HouseData>> = {
-    'leao': { color: '#ff4d4d', trait: 'CORAGEM', crest: '/images/leao.brasao.png', mascot: '/images/leao_mascot.png', desc: 'A linhagem da audácia e força técnica.' },
-    'corvo': { color: '#4d7cff', trait: 'SABEDORIA', crest: '/images/corvo.brasao.png', mascot: '/images/corvo_mascot.png', desc: 'A linhagem da análise e conhecimento.' },
-    'lobo': { color: '#ffd700', trait: 'LEALDADE', crest: '/images/lobo.brasao.png', mascot: '/images/lobo_mascot.png', desc: 'A linhagem da união e persistência.' },
-    'dragao': { color: '#4dff4d', trait: 'AMBIÇÃO', crest: '/images/dragao.brasao.png', mascot: '/images/dragao_mascot.png', desc: 'A linhagem da evolução e excelência.' },
-};
 
 const HouseScores: React.FC = () => {
     const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -33,30 +27,21 @@ const HouseScores: React.FC = () => {
 
     const { data: casasBackend, isLoading } = useCasas();
 
-    // Initialize and sort houses based on API or Fallback
+    // Initialize and sort houses based on Dynamic API data
     useEffect(() => {
-        let houses: HouseData[] = [];
+        if (!casasBackend || casasBackend.length === 0) return;
 
-        if (casasBackend && casasBackend.length > 0) {
-            houses = casasBackend.map(cb => ({
-                id: cb.id,
-                name: cb.nome,
-                color: HOUSES_META[cb.slug]?.color || cb.cor || '#fff',
-                pts: cb.points,
-                trait: HOUSES_META[cb.slug]?.trait || 'PODER',
-                crest: HOUSES_META[cb.slug]?.crest || '/images/default_crest.png',
-                mascot: HOUSES_META[cb.slug]?.mascot || '/images/default_mascot.png',
-                desc: HOUSES_META[cb.slug]?.desc || 'Uma linhagem de grandes feitos em Arcanum.'
-            }));
-        } else {
-            // Static fallback for loading state or empty data
-            houses = Object.entries(HOUSES_META).map(([slug, meta]) => ({
-                id: slug,
-                name: slug.charAt(0).toUpperCase() + slug.slice(1),
-                pts: 0,
-                ...meta
-            } as HouseData));
-        }
+        const houses: HouseData[] = casasBackend.map(cb => ({
+            id: cb.id,
+            name: cb.nome,
+            color: cb.cor || '#fff',
+            pts: cb.points,
+            trait: cb.fraze || 'PODER',
+            crest: cb.brasao || '/images/default_crest.png',
+            mascot: cb.image || '/images/default_mascot.png',
+            desc: cb.descricao || 'Uma linhagem de grandes feitos em Arcanum.',
+            config: cb.config || { titleSize: '', rankScale: 1 }
+        }));
 
         const sorted = houses.sort((a, b) => b.pts - a.pts);
         setSortedHouses(sorted);
@@ -109,56 +94,62 @@ const HouseScores: React.FC = () => {
 
         const texLoader = new THREE.TextureLoader();
 
-        // Use static metadata for 3D pedestals initially, points don't affect position yet
-        Object.entries(HOUSES_META).forEach(([, meta], i) => {
-            const group = new THREE.Group();
-            const color = meta.color || '#fff';
+        // Clear existing pedestals if any
+        pedestalsRef.current.forEach(p => scene.remove(p));
+        pedestalsRef.current = [];
 
-            // Pillars
-            const pillarGeom = new THREE.BoxGeometry(1.5, 8, 1.5);
-            const pillarMat = new THREE.MeshStandardMaterial({
-                color: color,
-                metalness: 0.9,
-                roughness: 0.1,
-                transparent: true,
-                opacity: 0.35,
-                emissive: color,
-                emissiveIntensity: 0.15
+        // Use dynamic backend data for 3D pedestals
+        if (casasBackend) {
+            casasBackend.forEach((cb, i) => {
+                const group = new THREE.Group();
+                const color = cb.cor || '#fff';
+
+                // Pillars
+                const pillarGeom = new THREE.BoxGeometry(1.5, 8, 1.5);
+                const pillarMat = new THREE.MeshStandardMaterial({
+                    color: color,
+                    metalness: 0.9,
+                    roughness: 0.1,
+                    transparent: true,
+                    opacity: 0.35,
+                    emissive: color,
+                    emissiveIntensity: 0.15
+                });
+                const pillar = new THREE.Mesh(pillarGeom, pillarMat);
+                pillar.position.y = 4;
+                group.add(pillar);
+
+                // Energy Fill
+                const energyGeom = new THREE.BoxGeometry(1.48, 1, 1.48);
+                const energyMat = new THREE.MeshStandardMaterial({
+                    color: color,
+                    emissive: color,
+                    emissiveIntensity: 1.8,
+                    transparent: true,
+                    opacity: 0.6
+                });
+                const energy = new THREE.Mesh(energyGeom, energyMat);
+                energy.scale.y = 4; // Placeholder height
+                energy.position.y = 2;
+                group.add(energy);
+
+                // Crest
+                const crestGeom = new THREE.PlaneGeometry(1.2, 1.2);
+                const crestMat = new THREE.MeshBasicMaterial({
+                    map: texLoader.load(cb.brasao || '/images/default_crest.png'),
+                    transparent: true,
+                    color: color,
+                    opacity: 0.8
+                });
+                const crest = new THREE.Mesh(crestGeom, crestMat);
+                crest.position.set(0, 5.5, 0.76);
+                group.add(crest);
+
+                group.position.set((i - (casasBackend.length - 1) / 2) * 9, 0, -15);
+                scene.add(group);
+                pedestalsRef.current.push(group);
             });
-            const pillar = new THREE.Mesh(pillarGeom, pillarMat);
-            pillar.position.y = 4;
-            group.add(pillar);
-
-            // Energy Fill
-            const energyGeom = new THREE.BoxGeometry(1.48, 1, 1.48);
-            const energyMat = new THREE.MeshStandardMaterial({
-                color: color,
-                emissive: color,
-                emissiveIntensity: 1.8,
-                transparent: true,
-                opacity: 0.6
-            });
-            const energy = new THREE.Mesh(energyGeom, energyMat);
-            energy.scale.y = 4; // Placeholder height
-            energy.position.y = 2;
-            group.add(energy);
-
-            // Crest
-            const crestGeom = new THREE.PlaneGeometry(1.2, 1.2);
-            const crestMat = new THREE.MeshBasicMaterial({
-                map: texLoader.load(meta.crest || ''),
-                transparent: true,
-                color: color,
-                opacity: 0.8
-            });
-            const crest = new THREE.Mesh(crestGeom, crestMat);
-            crest.position.set(0, 5.5, 0.76);
-            group.add(crest);
-
-            group.position.set((i - 1.5) * 9, 0, -15);
-            scene.add(group);
-            pedestalsRef.current.push(group);
-        });
+        }
 
         const ambient = new THREE.AmbientLight(0x4040ff, 0.3);
         scene.add(ambient);
@@ -210,7 +201,7 @@ const HouseScores: React.FC = () => {
             window.removeEventListener('resize', handleResize);
             renderer.dispose();
         };
-    }, []);
+    }, [casasBackend]);
 
     const getRomanRank = (index: number) => ['I', 'II', 'III', 'IV'][index] || (index + 1).toString();
 
@@ -278,7 +269,12 @@ const HouseScores: React.FC = () => {
                                             <span className="leader-label">SOBERANO ATUAL</span>
                                         </div>
                                     )}
-                                    <span className="rank-num">{getRomanRank(currentIndex)}</span>
+                                    <span
+                                        className="rank-num"
+                                        style={{ transform: `scale(${sortedHouses[currentIndex].config?.rankScale || 1})` }}
+                                    >
+                                        {getRomanRank(currentIndex)}
+                                    </span>
                                 </div>
 
                                 <div className="card-glow-v5"></div>
@@ -290,7 +286,12 @@ const HouseScores: React.FC = () => {
                                         </div>
                                         <div className="house-info-v5">
                                             <span className="house-trait-v5">{sortedHouses[currentIndex].trait}</span>
-                                            <h2 className="house-name-v5">{sortedHouses[currentIndex].name}</h2>
+                                            <h2
+                                                className="house-name-v5"
+                                                style={{ fontSize: sortedHouses[currentIndex].config?.titleSize || undefined }}
+                                            >
+                                                {sortedHouses[currentIndex].name}
+                                            </h2>
                                         </div>
                                     </div>
 

@@ -1,10 +1,11 @@
 import React from 'react';
 import { Routes, Route, NavLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
-import { LogOut, Home, Users, Award, History } from 'lucide-react';
+import { LogOut, Home, Users, Award, History, Settings } from 'lucide-react';
 import PontuacaoForm from '../components/admin/PontuacaoForm';
 import AlunosManagement from '../components/admin/AlunosManagement';
 import HistoricoGlobal from '../components/admin/HistoricoGlobal';
+import HouseConfig from '../components/admin/HouseConfig';
 import { useCasas } from '../hooks/useCasas';
 
 const DashboardOverview = () => {
@@ -39,10 +40,9 @@ const AdminPage: React.FC = () => {
     };
 
     const navItemClassName = ({ isActive }: { isActive: boolean }) =>
-        `flex items-center gap-3 rounded px-4 py-2 transition-colors ${
-            isActive
-                ? 'bg-[#c9a84c]/12 text-[#f4e9c8]'
-                : 'text-white/60 hover:bg-[#c9a84c]/10 hover:text-white'
+        `flex items-center gap-3 rounded px-4 py-2 transition-colors ${isActive
+            ? 'bg-[#c9a84c]/12 text-[#f4e9c8]'
+            : 'text-white/60 hover:bg-[#c9a84c]/10 hover:text-white'
         }`;
 
     return (
@@ -66,6 +66,9 @@ const AdminPage: React.FC = () => {
                     <NavLink to="/admin/historico" className={navItemClassName}>
                         <History size={20} /> Histórico
                     </NavLink>
+                    <NavLink to="/admin/config" className={navItemClassName}>
+                        <Settings size={20} /> Configurações
+                    </NavLink>
                 </nav>
 
                 <div className="p-4 border-t border-[#c9a84c]/10">
@@ -88,6 +91,7 @@ const AdminPage: React.FC = () => {
                     <Route path="alunos" element={<AlunosManagement />} />
                     <Route path="pontuar" element={<PontuacaoForm />} />
                     <Route path="historico" element={<HistoricoGlobal />} />
+                    <Route path="config" element={<HouseConfig />} />
                 </Routes>
             </main>
         </div>

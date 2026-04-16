@@ -21,9 +21,19 @@ const LandingPage: React.FC = () => {
             await loadSlim(engine);
         }).then(() => {
             setInit(true);
+        }).catch((error) => {
+            console.error('Falha ao iniciar particulas da landing page:', error);
         });
     }, []);
+
     useEffect(() => {
+        let orbRenderer: THREE.WebGLRenderer | null = null;
+        let abismoRenderer: THREE.WebGLRenderer | null = null;
+        let revealObs: IntersectionObserver | null = null;
+        let orbAnimationFrameId = 0;
+        let abismoAnimationFrameId = 0;
+        const tiltHandlers = new Map<HTMLElement, { move: (e: MouseEvent) => void; leave: () => void }>();
+
         // --- CUSTOM CURSOR ---
         const moveCursor = (e: MouseEvent) => {
             if (cursorOuterRef.current && cursorInnerRef.current) {
@@ -49,156 +59,181 @@ const LandingPage: React.FC = () => {
         };
         window.addEventListener('scroll', handleScroll);
 
-        // --- THREE.JS ORB ---
-        if (orbCanvasRef.current) {
-            const canvas = orbCanvasRef.current;
-            const renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: true });
-            renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-            renderer.setSize(340, 340);
-            const scene = new THREE.Scene();
-            const camera = new THREE.PerspectiveCamera(60, 1, 0.1, 100);
-            camera.position.z = 4;
-
-            const orb = new THREE.Mesh(
-                new THREE.SphereGeometry(1.2, 64, 64),
-                new THREE.MeshPhongMaterial({
-                    color: 0x0a0520,
-                    emissive: 0x1a0060,
-                    emissiveIntensity: 0.4,
-                    specular: 0xC8A44D,
-                    shininess: 100,
-                    transparent: true,
-                    opacity: 0.85
-                })
-            );
-            scene.add(orb);
-
-            const wire = new THREE.Mesh(
-                new THREE.SphereGeometry(1.25, 18, 18),
-                new THREE.MeshBasicMaterial({ color: 0xC8A44D, wireframe: true, transparent: true, opacity: 0.12 })
-            );
-            scene.add(wire);
-
-            const r1 = new THREE.Mesh(
-                new THREE.TorusGeometry(1.65, 0.012, 8, 80),
-                new THREE.MeshBasicMaterial({ color: 0xC8A44D, transparent: true, opacity: 0.45 })
-            );
-            r1.rotation.x = Math.PI / 2;
-            scene.add(r1);
-
-            const r2 = r1.clone();
-            r2.rotation.x = Math.PI / 3;
-            r2.rotation.y = Math.PI / 4;
-            scene.add(r2);
-
-            const pn = 280;
-            const pg = new THREE.BufferGeometry();
-            const pp = new Float32Array(pn * 3);
-            for (let i = 0; i < pn; i++) {
-                const th = Math.random() * Math.PI * 2;
-                const ph = Math.acos(2 * Math.random() - 1);
-                const r = 1.5 + Math.random() * 1.2;
-                pp[i * 3] = r * Math.sin(ph) * Math.cos(th);
-                pp[i * 3 + 1] = r * Math.sin(ph) * Math.sin(th);
-                pp[i * 3 + 2] = r * Math.cos(ph);
+        const onMove = (e: MouseEvent) => {
+            mouseY = (e.clientY / window.innerHeight - 0.5) * 2;
+        };
+        const onResize = () => {
+            if (!abismoRenderer) {
+                return;
             }
-            pg.setAttribute('position', new THREE.BufferAttribute(pp, 3));
-            scene.add(new THREE.Points(pg, new THREE.PointsMaterial({ color: 0xC8A44D, size: 0.03, transparent: true, opacity: 0.7 })));
+            abismoRenderer.setSize(window.innerWidth, window.innerHeight);
+        };
+        const handleTilt = (e: MouseEvent, card: HTMLElement) => {
+            const r = card.getBoundingClientRect();
+            const cx = r.left + r.width / 2;
+            const cy = r.top + r.height / 2;
+            const dx = (e.clientX - cx) / (r.width / 2);
+            const dy = (e.clientY - cy) / (r.height / 2);
+            card.style.transform = `perspective(800px) rotateX(${dy * -10}deg) rotateY(${dx * 10}deg) translateY(-6px)`;
+            card.style.transition = 'transform 0.05s linear';
+        };
+        const resetTilt = (card: HTMLElement) => {
+            card.style.transform = 'perspective(800px) rotateX(0) rotateY(0)';
+            card.style.transition = 'transform 0.5s ease';
+        };
+        let mouseY = 0;
 
-            scene.add(new THREE.AmbientLight(0x220044, 2));
-            const gl = new THREE.PointLight(0xC8A44D, 3, 8);
-            gl.position.set(2, 2, 2);
-            scene.add(gl);
-            const bl = new THREE.PointLight(0x3040ff, 2, 8);
-            bl.position.set(-2, -2, 1);
-            scene.add(bl);
+        try {
+            // --- THREE.JS ORB ---
+            if (orbCanvasRef.current) {
+                const canvas = orbCanvasRef.current;
+                const renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: true });
+                orbRenderer = renderer;
+                renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+                renderer.setSize(340, 340);
+                const scene = new THREE.Scene();
+                const camera = new THREE.PerspectiveCamera(60, 1, 0.1, 100);
+                camera.position.z = 4;
 
-            let my = 0;
-            const onMove = (e: MouseEvent) => { my = (e.clientY / window.innerHeight - 0.5) * 2; };
-            window.addEventListener('mousemove', onMove);
+                const orb = new THREE.Mesh(
+                    new THREE.SphereGeometry(1.2, 64, 64),
+                    new THREE.MeshPhongMaterial({
+                        color: 0x0a0520,
+                        emissive: 0x1a0060,
+                        emissiveIntensity: 0.4,
+                        specular: 0xC8A44D,
+                        shininess: 100,
+                        transparent: true,
+                        opacity: 0.85
+                    })
+                );
+                scene.add(orb);
 
-            let t = 0;
-            const anim = () => {
-                t += 0.01;
-                orb.rotation.y += 0.005;
-                orb.rotation.x = my * 0.3;
-                wire.rotation.y += 0.008;
-                wire.rotation.z += 0.003;
-                r1.rotation.z += 0.006;
-                r2.rotation.y += 0.009;
-                gl.intensity = 2.5 + Math.sin(t * 1.5) * 1.2;
-                bl.intensity = 1.5 + Math.cos(t * 0.8) * 0.8;
-                orb.position.y = Math.sin(t * 0.6) * 0.06;
-                renderer.render(scene, camera);
-                requestAnimationFrame(anim);
-            };
-            anim();
-        }
+                const wire = new THREE.Mesh(
+                    new THREE.SphereGeometry(1.25, 18, 18),
+                    new THREE.MeshBasicMaterial({ color: 0xC8A44D, wireframe: true, transparent: true, opacity: 0.12 })
+                );
+                scene.add(wire);
 
-        // --- THREE.JS ABISMO ---
-        if (abismoCanvasRef.current) {
-            const canvas = abismoCanvasRef.current;
-            const w = window.innerWidth;
-            const h = window.innerHeight;
-            const renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: true });
-            renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-            renderer.setSize(w, h);
-            const scene = new THREE.Scene();
-            const camera = new THREE.PerspectiveCamera(75, w / h, 0.1, 200);
-            camera.position.z = 40;
+                const r1 = new THREE.Mesh(
+                    new THREE.TorusGeometry(1.65, 0.012, 8, 80),
+                    new THREE.MeshBasicMaterial({ color: 0xC8A44D, transparent: true, opacity: 0.45 })
+                );
+                r1.rotation.x = Math.PI / 2;
+                scene.add(r1);
 
-            const ec = 600;
-            const eg = new THREE.BufferGeometry();
-            const ep = new Float32Array(ec * 3);
-            const ecol = new Float32Array(ec * 3);
-            const ev = new Float32Array(ec * 3);
-            for (let i = 0; i < ec; i++) {
-                const i3 = i * 3;
-                const t = Math.random();
-                ep[i3] = (Math.random() - 0.5) * 80;
-                ep[i3 + 1] = (Math.random() - 0.5) * 60 - 10;
-                ep[i3 + 2] = (Math.random() - 0.5) * 30;
-                ev[i3] = (Math.random() - 0.5) * 0.05;
-                ev[i3 + 1] = Math.random() * 0.12 + 0.03;
-                ev[i3 + 2] = (Math.random() - 0.5) * 0.04;
-                ecol[i3] = 1;
-                ecol[i3 + 1] = t * 0.4;
-                ecol[i3 + 2] = 0;
+                const r2 = r1.clone();
+                r2.rotation.x = Math.PI / 3;
+                r2.rotation.y = Math.PI / 4;
+                scene.add(r2);
+
+                const pn = 280;
+                const pg = new THREE.BufferGeometry();
+                const pp = new Float32Array(pn * 3);
+                for (let i = 0; i < pn; i++) {
+                    const th = Math.random() * Math.PI * 2;
+                    const ph = Math.acos(2 * Math.random() - 1);
+                    const r = 1.5 + Math.random() * 1.2;
+                    pp[i * 3] = r * Math.sin(ph) * Math.cos(th);
+                    pp[i * 3 + 1] = r * Math.sin(ph) * Math.sin(th);
+                    pp[i * 3 + 2] = r * Math.cos(ph);
+                }
+                pg.setAttribute('position', new THREE.BufferAttribute(pp, 3));
+                scene.add(new THREE.Points(pg, new THREE.PointsMaterial({ color: 0xC8A44D, size: 0.03, transparent: true, opacity: 0.7 })));
+
+                scene.add(new THREE.AmbientLight(0x220044, 2));
+                const gl = new THREE.PointLight(0xC8A44D, 3, 8);
+                gl.position.set(2, 2, 2);
+                scene.add(gl);
+                const bl = new THREE.PointLight(0x3040ff, 2, 8);
+                bl.position.set(-2, -2, 1);
+                scene.add(bl);
+                window.addEventListener('mousemove', onMove);
+
+                let t = 0;
+                const anim = () => {
+                    t += 0.01;
+                    orb.rotation.y += 0.005;
+                    orb.rotation.x = mouseY * 0.3;
+                    wire.rotation.y += 0.008;
+                    wire.rotation.z += 0.003;
+                    r1.rotation.z += 0.006;
+                    r2.rotation.y += 0.009;
+                    gl.intensity = 2.5 + Math.sin(t * 1.5) * 1.2;
+                    bl.intensity = 1.5 + Math.cos(t * 0.8) * 0.8;
+                    orb.position.y = Math.sin(t * 0.6) * 0.06;
+                    renderer.render(scene, camera);
+                    orbAnimationFrameId = requestAnimationFrame(anim);
+                };
+                anim();
             }
-            eg.setAttribute('position', new THREE.BufferAttribute(ep, 3));
-            eg.setAttribute('color', new THREE.BufferAttribute(ecol, 3));
-            const embers = new THREE.Points(eg, new THREE.PointsMaterial({ size: 0.5, vertexColors: true, transparent: true, opacity: 0.75 }));
-            scene.add(embers);
 
-            const anim = () => {
-                const a = embers.geometry.attributes.position.array as Float32Array;
+            // --- THREE.JS ABISMO ---
+            if (abismoCanvasRef.current) {
+                const canvas = abismoCanvasRef.current;
+                const w = window.innerWidth;
+                const h = window.innerHeight;
+                const renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: true });
+                abismoRenderer = renderer;
+                renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+                renderer.setSize(w, h);
+                const scene = new THREE.Scene();
+                const camera = new THREE.PerspectiveCamera(75, w / h, 0.1, 200);
+                camera.position.z = 40;
+
+                const ec = 600;
+                const eg = new THREE.BufferGeometry();
+                const ep = new Float32Array(ec * 3);
+                const ecol = new Float32Array(ec * 3);
+                const ev = new Float32Array(ec * 3);
                 for (let i = 0; i < ec; i++) {
                     const i3 = i * 3;
-                    a[i3] += ev[i3];
-                    a[i3 + 1] += ev[i3 + 1];
-                    a[i3 + 2] += ev[i3 + 2];
-                    if (a[i3 + 1] > 35) {
-                        a[i3] = (Math.random() - 0.5) * 80;
-                        a[i3 + 1] = -30;
-                        a[i3 + 2] = (Math.random() - 0.5) * 30;
-                    }
+                    const t = Math.random();
+                    ep[i3] = (Math.random() - 0.5) * 80;
+                    ep[i3 + 1] = (Math.random() - 0.5) * 60 - 10;
+                    ep[i3 + 2] = (Math.random() - 0.5) * 30;
+                    ev[i3] = (Math.random() - 0.5) * 0.05;
+                    ev[i3 + 1] = Math.random() * 0.12 + 0.03;
+                    ev[i3 + 2] = (Math.random() - 0.5) * 0.04;
+                    ecol[i3] = 1;
+                    ecol[i3 + 1] = t * 0.4;
+                    ecol[i3 + 2] = 0;
                 }
-                embers.geometry.attributes.position.needsUpdate = true;
-                renderer.render(scene, camera);
-                requestAnimationFrame(anim);
-            };
-            anim();
+                eg.setAttribute('position', new THREE.BufferAttribute(ep, 3));
+                eg.setAttribute('color', new THREE.BufferAttribute(ecol, 3));
+                const embers = new THREE.Points(eg, new THREE.PointsMaterial({ size: 0.5, vertexColors: true, transparent: true, opacity: 0.75 }));
+                scene.add(embers);
 
-            const onResize = () => {
-                renderer.setSize(window.innerWidth, window.innerHeight);
-                camera.aspect = window.innerWidth / window.innerHeight;
-                camera.updateProjectionMatrix();
-            };
-            window.addEventListener('resize', onResize);
+                const anim = () => {
+                    const a = embers.geometry.attributes.position.array as Float32Array;
+                    for (let i = 0; i < ec; i++) {
+                        const i3 = i * 3;
+                        a[i3] += ev[i3];
+                        a[i3 + 1] += ev[i3 + 1];
+                        a[i3 + 2] += ev[i3 + 2];
+                        if (a[i3 + 1] > 35) {
+                            a[i3] = (Math.random() - 0.5) * 80;
+                            a[i3 + 1] = -30;
+                            a[i3 + 2] = (Math.random() - 0.5) * 30;
+                        }
+                    }
+                    embers.geometry.attributes.position.needsUpdate = true;
+                    renderer.render(scene, camera);
+                    abismoAnimationFrameId = requestAnimationFrame(anim);
+                };
+                anim();
+                window.addEventListener('resize', onResize);
+            }
+        } catch (error) {
+            console.error('Falha ao iniciar efeitos 3D da landing page:', error);
+            orbRenderer?.dispose();
+            abismoRenderer?.dispose();
+            orbRenderer = null;
+            abismoRenderer = null;
         }
 
         // --- INTERSECTION OBSERVERS ---
-        const revealObs = new IntersectionObserver((entries) => {
+        revealObs = new IntersectionObserver((entries) => {
             entries.forEach(entry => {
                 if (entry.isIntersecting) {
                     entry.target.classList.add('visible');
@@ -215,7 +250,7 @@ const LandingPage: React.FC = () => {
 
         document.querySelectorAll('.conceito-inner, .casas-header, .pontos-header, .penalidades-inner, .abismo-content, .final-inner, .tabela-row').forEach(el => {
             el.classList.add('reveal');
-            revealObs.observe(el);
+            revealObs?.observe(el);
         });
 
         // --- GSAP ANIMATIONS ---
@@ -230,25 +265,13 @@ const LandingPage: React.FC = () => {
         });
 
         // --- TILT EFFECT ---
-        const handleTilt = (e: MouseEvent, card: HTMLElement) => {
-            const r = card.getBoundingClientRect();
-            const cx = r.left + r.width / 2;
-            const cy = r.top + r.height / 2;
-            const dx = (e.clientX - cx) / (r.width / 2);
-            const dy = (e.clientY - cy) / (r.height / 2);
-            card.style.transform = `perspective(800px) rotateX(${dy * -10}deg) rotateY(${dx * 10}deg) translateY(-6px)`;
-            card.style.transition = 'transform 0.05s linear';
-        };
-
-        const resetTilt = (card: HTMLElement) => {
-            card.style.transform = 'perspective(800px) rotateX(0) rotateY(0)';
-            card.style.transition = 'transform 0.5s ease';
-        };
-
         document.querySelectorAll('[data-tilt]').forEach(el => {
             const card = el as HTMLElement;
-            card.addEventListener('mousemove', (e) => handleTilt(e, card));
-            card.addEventListener('mouseleave', () => resetTilt(card));
+            const move = (e: MouseEvent) => handleTilt(e, card);
+            const leave = () => resetTilt(card);
+            tiltHandlers.set(card, { move, leave });
+            card.addEventListener('mousemove', move);
+            card.addEventListener('mouseleave', leave);
         });
 
         // --- ABISMO RED PARTICLES ---
@@ -288,7 +311,18 @@ const LandingPage: React.FC = () => {
         return () => {
             window.removeEventListener('mousemove', moveCursor);
             window.removeEventListener('scroll', handleScroll);
-            revealObs.disconnect();
+            window.removeEventListener('mousemove', onMove);
+            window.removeEventListener('resize', onResize);
+            if (orbAnimationFrameId) cancelAnimationFrame(orbAnimationFrameId);
+            if (abismoAnimationFrameId) cancelAnimationFrame(abismoAnimationFrameId);
+            orbRenderer?.dispose();
+            abismoRenderer?.dispose();
+            revealObs?.disconnect();
+            tiltHandlers.forEach((handlers, card) => {
+                card.removeEventListener('mousemove', handlers.move);
+                card.removeEventListener('mouseleave', handlers.leave);
+            });
+            ScrollTrigger.getAll().forEach((trigger) => trigger.kill());
             if (abismoParticlesContainer) abismoParticlesContainer.innerHTML = '';
             if (finalStarsContainer) finalStarsContainer.innerHTML = '';
         };

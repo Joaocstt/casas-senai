@@ -1,8 +1,6 @@
-version: '3.8'
-
 services:
   db:
-    image: postgres:16-alpine
+    image: postgres:15-alpine
     container_name: arcanum-db
     restart: always
     environment:
@@ -12,7 +10,7 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
     ports:
-      - "5432:5432"
+      - "${DB_PORT:-5433}:5432"
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U arcanum -d arcanum"]
       interval: 10s
@@ -25,6 +23,11 @@ services:
       dockerfile: Dockerfile
     container_name: arcanum-backend
     restart: always
+    ports:
+      - "${BACKEND_PORT:-3001}:3001"
+    volumes:
+      - ./backend:/app
+      - /app/node_modules
     environment:
       DATABASE_URL: postgresql://arcanum:arcanumpassword@db:5432/arcanum?schema=public
       JWT_SECRET: secret123
@@ -38,8 +41,7 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
-    # Automatically run migrations on startup
-    command: sh -c "npx prisma migrate deploy && npm run start"
+    command: sh -c "npm run start"
 
   frontend:
     build:
@@ -48,7 +50,7 @@ services:
     container_name: arcanum-frontend
     restart: always
     ports:
-      - "80:80"
+      - "${FRONTEND_PORT:-5173}:80"
     depends_on:
       - backend
 

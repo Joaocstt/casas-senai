@@ -23,10 +23,42 @@ async function main() {
 
     // Create houses
     const houses = [
-        { slug: 'leao', nome: 'Casa de Leão', cor: '#FFD700', image: '/images/leao.png' },
-        { slug: 'corvo', nome: 'Casa de Corvo', cor: '#1A237E', image: '/images/corvo.png' },
-        { slug: 'lobo', nome: 'Casa de Lobo', cor: '#607D8B', image: '/images/lobo.png' },
-        { slug: 'dragao', nome: 'Casa de Dragão', cor: '#B71C1C', image: '/images/dragao.png' },
+        {
+            slug: 'leao',
+            nome: 'Casa de Leão',
+            cor: '#ff4d4d',
+            image: '/images/leao_mascot.png',
+            brasao: '/images/leao.brasao.png',
+            fraze: 'CORAGEM',
+            descricao: 'A linhagem da audácia e força técnica.'
+        },
+        {
+            slug: 'corvo',
+            nome: 'Casa de Corvo',
+            cor: '#4d7cff',
+            image: '/images/corvo_mascot.png',
+            brasao: '/images/corvo.brasao.png',
+            fraze: 'SABEDORIA',
+            descricao: 'A linhagem da análise e conhecimento.'
+        },
+        {
+            slug: 'lobo',
+            nome: 'Casa de Lobo',
+            cor: '#ffd700',
+            image: '/images/lobo_mascot.png',
+            brasao: '/images/lobo.brasao.png',
+            fraze: 'LEALDADE',
+            descricao: 'A linhagem da união e persistência.'
+        },
+        {
+            slug: 'dragao',
+            nome: 'Casa de Dragão',
+            cor: '#4dff4d',
+            image: '/images/dragao_mascot.png',
+            brasao: '/images/dragao.brasao.png',
+            fraze: 'AMBIÇÃO',
+            descricao: 'A linhagem da evolução e excelência.'
+        },
     ];
 
     for (const house of houses) {
