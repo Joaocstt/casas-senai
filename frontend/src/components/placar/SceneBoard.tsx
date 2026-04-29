@@ -1,6 +1,7 @@
 import React from 'react';
 import type { CasaConfig } from '../../types/arcanum';
 import BarRow from './BarRow';
+import logoSenai from '../../assets/logo-senai.png';
 
 interface SceneBoardProps {
     casa: CasaConfig;
@@ -47,9 +48,25 @@ const SceneBoard: React.FC<SceneBoardProps> = ({ casa }) => {
                     <img
                         src={image}
                         alt={nome}
-                        className="absolute inset-0 w-full h-full block object-cover"
+                        className="absolute inset-0 w-full h-full block object-contain"
                     />
                 )}
+
+                <img
+                    src={logoSenai}
+                    alt="SENAI"
+                    style={{
+                        position: 'absolute',
+                        right: '2.2%',
+                        bottom: '5.8%',
+                        width: '12cqh',
+                        maxWidth: '18%',
+                        height: 'auto',
+                        pointerEvents: 'none',
+                        filter: 'drop-shadow(0 6px 18px rgba(0,0,0,0.55))',
+                        opacity: 0.95,
+                    }}
+                />
                 {/* Sorted Members Ranking */}
                 {[...members]
                     .sort((a, b) => b.points - a.points)
